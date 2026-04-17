@@ -2,44 +2,43 @@
 # Python 3.10+
 
 # --- Web Framework ---
-fastapi==0.115.6
-uvicorn[standard]==0.34.0
-python-multipart==0.0.20
+fastapi>=0.115.0
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
 
 # --- Database ---
-sqlalchemy==2.0.36
-aiosqlite==0.20.0
+sqlalchemy>=2.0.36
+aiosqlite>=0.20.0
 
 # --- PDF Parsing ---
-pdfplumber==0.11.4
-PyMuPDF==1.25.3
+pdfplumber>=0.11.0
+PyMuPDF>=1.25.0
 
 # --- OCR ---
-# surya-ocr==0.8.1          # Uncomment if you want Surya OCR (requires PyTorch)
-# paddleocr==2.9.1           # Uncomment if you want PaddleOCR fallback
-Pillow==11.1.0
+# surya-ocr>=0.8.0           # Uncomment if you want Surya OCR (requires PyTorch)
+# paddleocr>=2.9.0            # Uncomment if you want PaddleOCR fallback
+Pillow>=11.0.0
 
 # --- Image Processing ---
-opencv-python-headless==4.10.0.84
-numpy==1.26.4
+opencv-python-headless>=4.10.0
+numpy>=2.0.0
 
 # --- NLP / NER ---
-transformers==4.47.1
-torch==2.5.1
-# Install PyTorch separately if needed: pip install torch --index-url https://download.pytorch.org/whl/cpu
+# transformers>=4.47.0        # Uncomment if you want HuggingFace NER (requires PyTorch)
+# torch>=2.5.0                # Install PyTorch separately: pip install torch --index-url https://download.pytorch.org/whl/cpu
 
 # --- Language Detection ---
-langdetect==1.0.9
+langdetect>=1.0.9
 
 # --- LLM (Google Gemini — free tier, uses httpx) ---
 # No extra package needed — uses httpx REST calls
 
 # --- HTTP Client ---
-httpx==0.28.1
+httpx>=0.28.0
 
 # --- Configuration ---
-pydantic-settings==2.7.0
-python-dotenv==1.0.1
+pydantic-settings>=2.7.0
+python-dotenv>=1.0.1
 
 # --- Security ---
-cryptography==44.0.0
+cryptography>=44.0.0
