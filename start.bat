@@ -28,7 +28,8 @@ if not exist .env (
     echo [SETUP] Creating .env from .env.example...
     copy .env.example .env
     echo.
-    echo [WARNING] Please edit .env and add your ANTHROPIC_API_KEY
+    echo [WARNING] Please edit .env and add your GEMINI_API_KEY
+    echo          Get a free key at: https://aistudio.google.com/apikey
     echo          Demo mode works without an API key.
     echo.
 )

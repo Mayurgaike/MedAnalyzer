@@ -1,15 +1,18 @@
 """
-AI Summary Generator using Claude API.
+AI Summary Generator using Google Gemini API (free tier).
 
-Sends structured patient data to Claude to generate a comprehensive,
+Sends structured patient data to Gemini to generate a comprehensive,
 doctor-ready medical summary in JSON format.
 Supports multilingual output.
+
+Free tier: 15 RPM, 1M+ tokens/day with gemini-2.0-flash.
+Get your key at: https://aistudio.google.com/apikey
 """
 
 import json
 import logging
 
-import anthropic
+import httpx
 
 from backend.config import get_settings
 
@@ -29,6 +32,9 @@ LANGUAGE_NAMES = {
     "ml": "Malayalam",
 }
 
+# Gemini API endpoint
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
 
 async def generate_summary(
     timeline: list[dict],
@@ -39,8 +45,8 @@ async def generate_summary(
     language: str = "en",
 ) -> dict:
     """
-    Generate a comprehensive medical summary using Claude.
-    
+    Generate a comprehensive medical summary using Google Gemini.
+
     Args:
         timeline: Full patient timeline events
         trends: Lab value trend analysis results
@@ -48,62 +54,88 @@ async def generate_summary(
         entities: All extracted entities
         patient_info: Basic patient information
         language: Target language for the summary
-    
+
     Returns:
         Structured JSON summary with sections.
     """
-    if not settings.ANTHROPIC_API_KEY:
-        logger.warning("No Anthropic API key — returning template summary")
+    if not settings.GEMINI_API_KEY:
+        logger.warning("No Gemini API key — returning template summary")
         return _generate_fallback_summary(timeline, trends, drug_interactions, entities, patient_info)
 
     try:
-        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-
         lang_name = LANGUAGE_NAMES.get(language, "English")
         prompt = _build_prompt(timeline, trends, drug_interactions, entities, patient_info, lang_name)
 
-        message = client.messages.create(
-            model=settings.CLAUDE_MODEL,
-            max_tokens=settings.CLAUDE_MAX_TOKENS,
-            messages=[
+        url = GEMINI_API_URL.format(model=settings.GEMINI_MODEL)
+        payload = {
+            "contents": [
                 {
-                    "role": "user",
-                    "content": prompt,
+                    "parts": [
+                        {"text": prompt}
+                    ]
                 }
             ],
-            system="You are an expert medical AI assistant. Analyze patient data and generate structured medical summaries. Always respond with valid JSON only, no markdown formatting.",
-        )
+            "generationConfig": {
+                "temperature": 0.3,
+                "maxOutputTokens": settings.GEMINI_MAX_TOKENS,
+                "responseMimeType": "application/json",
+            },
+            "systemInstruction": {
+                "parts": [
+                    {
+                        "text": "You are an expert medical AI assistant. Analyze patient data and generate structured medical summaries. Always respond with valid JSON only, no markdown formatting."
+                    }
+                ]
+            },
+        }
 
-        # Extract text from response
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            response = await client.post(
+                url,
+                params={"key": settings.GEMINI_API_KEY},
+                json=payload,
+            )
+            response.raise_for_status()
+
+        result = response.json()
+
+        # Extract text from Gemini response
         response_text = ""
-        for block in message.content:
-            if block.type == "text":
-                response_text += block.text
+        candidates = result.get("candidates", [])
+        if candidates:
+            content = candidates[0].get("content", {})
+            parts = content.get("parts", [])
+            for part in parts:
+                if "text" in part:
+                    response_text += part["text"]
+
+        if not response_text.strip():
+            logger.warning("Empty response from Gemini — using fallback")
+            return _generate_fallback_summary(timeline, trends, drug_interactions, entities, patient_info)
 
         # Parse JSON response
-        # Try to extract JSON from response (Claude might wrap it in markdown)
         response_text = response_text.strip()
+        # Remove markdown code blocks if present
         if response_text.startswith("```"):
-            # Remove markdown code block
             lines = response_text.split("\n")
             response_text = "\n".join(lines[1:-1])
 
         summary = json.loads(response_text)
         summary["_metadata"] = {
-            "model": settings.CLAUDE_MODEL,
+            "model": settings.GEMINI_MODEL,
             "language": language,
-            "generated_by": "claude",
+            "generated_by": "gemini",
         }
 
-        logger.info(f"Claude summary generated in {lang_name}")
+        logger.info(f"Gemini summary generated in {lang_name}")
         return summary
 
     except json.JSONDecodeError as e:
-        logger.error(f"Failed to parse Claude response as JSON: {e}")
+        logger.error(f"Failed to parse Gemini response as JSON: {e}")
         logger.debug(f"Response was: {response_text[:500]}")
         return _generate_fallback_summary(timeline, trends, drug_interactions, entities, patient_info)
-    except anthropic.APIError as e:
-        logger.error(f"Claude API error: {e}")
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Gemini API HTTP error {e.response.status_code}: {e.response.text[:300]}")
         return _generate_fallback_summary(timeline, trends, drug_interactions, entities, patient_info)
     except Exception as e:
         logger.error(f"Summary generation failed: {e}")
@@ -118,7 +150,7 @@ def _build_prompt(
     patient_info: dict,
     language: str,
 ) -> str:
-    """Build the structured prompt for Claude."""
+    """Build the structured prompt for Gemini."""
 
     # Limit data size for prompt
     timeline_summary = timeline[:30]  # Last 30 events
@@ -193,7 +225,7 @@ def _generate_fallback_summary(
     patient_info: dict,
 ) -> dict:
     """
-    Generate a rule-based summary when Claude API is unavailable.
+    Generate a rule-based summary when Gemini API is unavailable.
     Uses extracted data directly to build a structured summary.
     """
     # Collect critical alerts

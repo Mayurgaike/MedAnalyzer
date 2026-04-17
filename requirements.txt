@@ -31,8 +31,8 @@ torch==2.5.1
 # --- Language Detection ---
 langdetect==1.0.9
 
-# --- LLM ---
-anthropic==0.40.0
+# --- LLM (Google Gemini — free tier, uses httpx) ---
+# No extra package needed — uses httpx REST calls
 
 # --- HTTP Client ---
 httpx==0.28.1

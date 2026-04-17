@@ -5,7 +5,7 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
-![Claude](https://img.shields.io/badge/Claude-Opus-blueviolet)
+![Gemini](https://img.shields.io/badge/Gemini-2.0_Flash-4285F4)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
@@ -25,7 +25,7 @@ cd Medical-Report-Analyzer
 
 # 2. Create your .env file
 copy .env.example .env
-# Edit .env and add your ANTHROPIC_API_KEY (optional — demo mode works without it)
+# Edit .env and add your GEMINI_API_KEY (free — get at https://aistudio.google.com/apikey)
 
 # 3. Run everything
 start.bat
@@ -50,7 +50,7 @@ npm run dev
 
 ## 🎮 Demo Mode
 
-Click the **"🎮 Try Demo Mode"** button on the home page to instantly see:
+Click the **"Try Demo Mode"** button on the home page to instantly see:
 - A diabetic patient (Rajesh Kumar) with 6 months of medical reports
 - Rising HbA1c trend (6.1% → 7.8%) flagged as **CRITICAL**
 - BP fluctuations crossing hypertensive threshold
@@ -58,7 +58,7 @@ Click the **"🎮 Try Demo Mode"** button on the home page to instantly see:
 - Full AI-generated doctor summary
 - Interactive health timeline with 40+ events
 
-**No PDF upload or API key needed for demo mode!**
+**No PDF upload or API key needed for demo mode! (AI summary will use fallback if no Gemini key is set)**
 
 ---
 
@@ -77,7 +77,7 @@ Upload PDF/Image
 │  7. Timeline Builder (chronological events) │
 │  8. Trend Detector (linear regression)      │
 │  9. Drug Interaction Check (OpenFDA API)    │
-│ 10. AI Summary (Claude API)                 │
+│ 10. AI Summary (Google Gemini API — free)   │
 └─────────────────────────────────────────────┘
      ↓
   Dashboard: Timeline + Charts + Interactions + Summary
@@ -93,7 +93,7 @@ Upload PDF/Image
 | **Backend** | FastAPI · Python 3.10 · Uvicorn |
 | **OCR** | Surya OCR (primary) · pdfplumber (digital PDFs) · PaddleOCR (fallback) |
 | **NLP/NER** | HuggingFace `d4data/biomedical-ner-all` (local, no API) + regex extractors |
-| **LLM** | Claude API (claude-opus-4-5) for doctor summaries |
+| **LLM** | Google Gemini API (gemini-2.0-flash) — **free tier**, 15 RPM, 1M tokens/day |
 | **Drug Data** | OpenFDA API (free, no key) — label cross-referencing |
 | **Database** | SQLite + SQLAlchemy, Fernet encryption for PII |
 | **PDF** | pdfplumber (digital) · PyMuPDF (PDF→image) |
@@ -108,11 +108,11 @@ Upload PDF/Image
 python -c "from transformers import AutoTokenizer, AutoModelForTokenClassification; AutoTokenizer.from_pretrained('d4data/biomedical-ner-all', cache_dir='./model_cache'); AutoModelForTokenClassification.from_pretrained('d4data/biomedical-ner-all', cache_dir='./model_cache')"
 ```
 
-### 2. Verify Claude API Key
-- Go to [console.anthropic.com](https://console.anthropic.com)
-- Create/verify your API key
-- Add to `.env`: `ANTHROPIC_API_KEY=sk-ant-...`
-- Current model string: `claude-opus-4-5`
+### 2. Get Gemini API Key (FREE)
+- Go to [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+- Click "Create API Key" (requires Google account)
+- Add to `.env`: `GEMINI_API_KEY=your_key_here`
+- Free tier: 15 requests/min, 1M+ tokens/day
 
 ### 3. Test Surya OCR (optional)
 ```bash

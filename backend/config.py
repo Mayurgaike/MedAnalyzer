@@ -33,10 +33,10 @@ class Settings(BaseSettings):
         )
     )
 
-    # --- Claude API ---
-    ANTHROPIC_API_KEY: str = ""
-    CLAUDE_MODEL: str = "claude-opus-4-5"
-    CLAUDE_MAX_TOKENS: int = 4096
+    # --- Google Gemini API (free tier) ---
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.0-flash"
+    GEMINI_MAX_TOKENS: int = 4096
 
     # --- HuggingFace NER ---
     NER_MODEL_NAME: str = "d4data/biomedical-ner-all"
