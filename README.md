@@ -1,4 +1,4 @@
-# 🏥 MedAnalyzer AI — Medical Report Analyzer & Patient Health Timeline Builder
+# MedAnalyzer AI — Medical Report Analyzer & Patient Health Timeline Builder
 
 > AI-powered medical report intelligence platform — upload medical reports, extract clinical data, track health trends, detect drug interactions, and generate doctor-ready AI summaries.
 
@@ -10,7 +10,7 @@
 
 ---
 
-## 🚀 Quick Start (Windows)
+## Quick Start (Windows)
 
 ### Prerequisites
 - **Python 3.10+** — [Download](https://python.org/downloads/)
@@ -48,7 +48,7 @@ npm run dev
 
 ---
 
-## 🎮 Demo Mode
+## Demo Mode
 
 Click the **"Try Demo Mode"** button on the home page to instantly see:
 - A diabetic patient (Rajesh Kumar) with 6 months of medical reports
@@ -62,7 +62,7 @@ Click the **"Try Demo Mode"** button on the home page to instantly see:
 
 ---
 
-## 📋 Architecture
+## Architecture
 
 ```
 Upload PDF/Image
@@ -85,7 +85,7 @@ Upload PDF/Image
 
 ---
 
-## 🧬 Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -100,7 +100,7 @@ Upload PDF/Image
 
 ---
 
-## 🔧 Pre-Hackathon Checklist
+## Checklist
 
 ### 1. Pre-download ML Models (avoid slow WiFi)
 ```bash
@@ -132,7 +132,7 @@ python -m uvicorn backend.main:app --reload
 
 ---
 
-## 🌐 Multilingual Support
+## Multilingual Support
 
 The app supports:
 - 🇬🇧 **English** (default)
@@ -143,7 +143,7 @@ All UI labels, buttons, and section headers are translated. The AI summary can a
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Medical-Report-Analyzer/
@@ -194,42 +194,7 @@ Medical-Report-Analyzer/
 
 ---
 
-## 🏆 Top 5 Hackathon Talking Points
-
-### 1. 🧠 Multi-Layer Medical NER Pipeline
-"We use a two-layer NER approach — HuggingFace's biomedical-ner-all model running locally identifies diseases, drugs, and genes, then our regex layer extracts precise lab values with units, dates, and dosages. This hybrid approach catches what either layer alone would miss."
-
-### 2. 📈 Predictive Health Trend Detection
-"Our system doesn't just display data — it runs linear regression on every lab metric to detect RISING, FALLING, and CRITICAL trends. It knows that HbA1c > 6.5% means diabetic range, BP > 140 is hypertensive, and flags these with medical thresholds. Judges, watch the demo patient's HbA1c rise from 6.1 to 7.8 — the system catches this progression early."
-
-### 3. 💊 Honest Drug Interaction Analysis
-"We use OpenFDA's free API to cross-reference drug labels. If Drug A's label mentions Drug B in its warnings section, we flag it. This isn't a black-box — we show the exact FDA label text. In our demo, the Metformin-Levothyroxine interaction is flagged because Metformin can suppress TSH levels, directly relevant to this patient's hypothyroidism."
-
-### 4. 🔐 Privacy-First Design
-"All patient names and raw medical text are encrypted at rest using Fernet symmetric encryption. The encryption key is configurable. Even if someone accesses the SQLite database directly, they can't read patient PII. This is production-grade healthcare data handling."
-
-### 5. 🌐 Multilingual + Graceful Degradation
-"The entire UI works in English, Hindi, and Marathi. The AI summary can be generated in the patient's language. And critically — if the internet is down, if the HuggingFace model hasn't downloaded, if the Claude API key isn't set — the app STILL WORKS. Every component has a fallback: pdfplumber for OCR, regex for NER, rule-based for summaries. The demo mode proves the full pipeline without any external dependencies."
-
----
-
-## 📝 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/analyze` | Upload and analyze a single report |
-| `POST` | `/analyze-multiple` | Upload multiple reports |
-| `POST` | `/patient/create` | Create a patient profile |
-| `GET`  | `/patient/{id}` | Get patient details |
-| `GET`  | `/patient/{id}/timeline` | Get full timeline |
-| `GET`  | `/patient/{id}/summary` | Get AI summary |
-| `GET`  | `/patients/recent` | List recent patients |
-| `GET`  | `/demo/data` | Load demo mode data |
-| `GET`  | `/docs` | Interactive API docs (Swagger) |
-
----
-
-## ⚠️ Known Limitations
+## Known Limitations
 
 - **OpenFDA**: Provides drug label information, not true pairwise clinical interaction checks. We're transparent about this.
 - **Surya OCR on Windows**: Requires PyTorch. Falls back to pdfplumber for digital PDFs if not installed.
@@ -239,6 +204,3 @@ Medical-Report-Analyzer/
 
 ---
 
-## 📄 License
-
-MIT License — Built for hackathon excellence 🏆

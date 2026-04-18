@@ -15,9 +15,9 @@ pdfplumber>=0.11.0
 PyMuPDF>=1.25.0
 
 # --- OCR ---
-# surya-ocr>=0.8.0           # Uncomment if you want Surya OCR (requires PyTorch)
-# paddleocr>=2.9.0            # Uncomment if you want PaddleOCR fallback
+surya-ocr>=0.17.0
 Pillow>=11.0.0
+requests>=2.31.0
 
 # --- Image Processing ---
 opencv-python-headless>=4.10.0

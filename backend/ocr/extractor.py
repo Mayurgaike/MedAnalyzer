@@ -3,7 +3,7 @@ Text extraction engine — multi-strategy OCR with graceful fallbacks.
 
 Priority order:
   1. pdfplumber (for digital PDFs — fast, accurate)
-  2. Surya OCR (for scanned/images — state-of-the-art)
+  2. Surya OCR v0.17+ (for scanned/images — state-of-the-art)
   3. PaddleOCR (fallback for languages Surya struggles with)
   4. Raw text return if all OCR fails
 
@@ -31,13 +31,11 @@ except ImportError:
     logger.warning("pdfplumber not installed")
 
 try:
-    from surya.ocr import run_ocr
-    from surya.model.detection.model import load_model as load_det_model
-    from surya.model.detection.processor import load_processor as load_det_processor
-    from surya.model.recognition.model import load_model as load_rec_model
-    from surya.model.recognition.processor import load_processor as load_rec_processor
+    from surya.recognition import RecognitionPredictor
+    from surya.detection import DetectionPredictor
+    from surya.foundation import FoundationPredictor
     SURYA_AVAILABLE = True
-    logger.info("Surya OCR loaded successfully")
+    logger.info("Surya OCR v0.17+ loaded successfully")
 except ImportError:
     logger.warning("Surya OCR not available — will use fallbacks")
 except Exception as e:
@@ -63,27 +61,28 @@ except ImportError:
 
 
 # ---------------------------------------------------------------------------
-# Cached model loaders (Surya)
+# Cached model loaders (Surya v0.17+)
 # ---------------------------------------------------------------------------
-_surya_models = {}
+_surya_predictors = {}
 
 
-def _get_surya_models():
-    """Load and cache Surya OCR models."""
-    global _surya_models
-    if not _surya_models and SURYA_AVAILABLE:
+def _get_surya_predictors():
+    """Load and cache Surya OCR predictors (v0.17+ API)."""
+    global _surya_predictors
+    if not _surya_predictors and SURYA_AVAILABLE:
         try:
             logger.info("Loading Surya OCR models (first time may take a minute)...")
-            _surya_models = {
-                "det_model": load_det_model(),
-                "det_processor": load_det_processor(),
-                "rec_model": load_rec_model(),
-                "rec_processor": load_rec_processor(),
+            foundation = FoundationPredictor()
+            rec_predictor = RecognitionPredictor(foundation)
+            det_predictor = DetectionPredictor()
+            _surya_predictors = {
+                "rec_predictor": rec_predictor,
+                "det_predictor": det_predictor,
             }
-            logger.info("Surya OCR models loaded.")
+            logger.info("Surya OCR models loaded successfully.")
         except Exception as e:
             logger.error(f"Failed to load Surya models: {e}")
-    return _surya_models
+    return _surya_predictors
 
 
 # ---------------------------------------------------------------------------
@@ -231,12 +230,12 @@ def _extract_with_pdfplumber(
 def _extract_with_surya(
     file_path: str | None, file_bytes: bytes | None, file_type: str
 ) -> ExtractionResult | None:
-    """Extract text using Surya OCR."""
+    """Extract text using Surya OCR (v0.17+ API)."""
     if not SURYA_AVAILABLE:
         return None
 
-    models = _get_surya_models()
-    if not models:
+    predictors = _get_surya_predictors()
+    if not predictors:
         return None
 
     try:
@@ -251,25 +250,28 @@ def _extract_with_surya(
             for i in range(min(page_count, 20)):  # Cap at 20 pages
                 img_array = pdf_page_to_image(file_path, i)
                 if img_array is not None:
-                    pil_img = Image.fromarray(img_array)
+                    # Convert BGR (OpenCV) to RGB for PIL
+                    import cv2
+                    rgb_array = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+                    pil_img = Image.fromarray(rgb_array)
                     images.append(pil_img)
         elif file_bytes:
-            images.append(Image.open(io.BytesIO(file_bytes)))
+            images.append(Image.open(io.BytesIO(file_bytes)).convert("RGB"))
         elif file_path:
-            images.append(Image.open(file_path))
+            images.append(Image.open(file_path).convert("RGB"))
 
         if not images:
             return None
 
-        # Run Surya OCR
-        langs = [["en"]]  # Default to English
-        predictions = run_ocr(
+        rec_predictor = predictors["rec_predictor"]
+        det_predictor = predictors["det_predictor"]
+
+        # Run Surya OCR v0.17+ — RecognitionPredictor handles both
+        # detection and recognition when given a det_predictor
+        predictions = rec_predictor(
             images,
-            langs * len(images),
-            models["det_model"],
-            models["det_processor"],
-            models["rec_model"],
-            models["rec_processor"],
+            det_predictor=det_predictor,
+            sort_lines=True,
         )
 
         all_text = []
@@ -294,7 +296,7 @@ def _extract_with_surya(
         )
 
     except Exception as e:
-        logger.error(f"Surya OCR failed: {e}")
+        logger.error(f"Surya OCR failed: {e}", exc_info=True)
         return None
 
 

@@ -83,7 +83,25 @@ async def generate_summary(
             "systemInstruction": {
                 "parts": [
                     {
-                        "text": "You are an expert medical AI assistant. Analyze patient data and generate structured medical summaries. Always respond with valid JSON only, no markdown formatting."
+                        "text": (
+                            "You are an expert medical AI assistant. Analyze patient data and generate structured medical summaries. "
+                            "Always respond with valid JSON only, no markdown formatting.\n\n"
+                            "CRITICAL ACCURACY RULES — YOU MUST FOLLOW THESE:\n\n"
+                            "1. REFERENCE RANGES vs PATIENT VALUES: Medical reports contain reference range tables, thresholds, "
+                            "and educational text. These are NOT patient data. Examples of INFORMATIONAL text to IGNORE:\n"
+                            "   - 'EST. GLOMERULAR FILTRATION RATE (eGFR)' sections with lines like '> = 90 : Normal', "
+                            "'60 - 89 : Mild Decrease', '< 15 : Kidney Failure' — these are interpretation guides, NOT diagnoses.\n"
+                            "   - 'Bio. Ref. Interval' or 'Reference Range' columns showing normal ranges like '70 - 100 mg/dL'.\n"
+                            "   - 'Clinical Significance' sections describing what abnormal values could mean.\n"
+                            "   - Lines starting with comparison operators (< > ≤ ≥) followed by a number and a condition name.\n"
+                            "   - Phrases like 'if value is', 'indicates', 'suggests', 'may represent'.\n\n"
+                            "2. ONLY report conditions the patient ACTUALLY HAS based on their measured values. "
+                            "If the report has an eGFR value of 85 and the reference table says '< 15 : Kidney Failure', "
+                            "the patient does NOT have kidney failure — report their actual eGFR of 85 and note it falls in the 'Mild Decrease' range.\n\n"
+                            "3. Only list medications the patient is ACTUALLY TAKING, not drugs mentioned in warnings or references.\n\n"
+                            "4. When uncertain about whether something is a real finding vs. reference text, OMIT it.\n\n"
+                            "5. For lab values, always report the ACTUAL measured value, not the reference range boundaries."
+                        )
                     }
                 ]
             },
@@ -213,6 +231,14 @@ IMPORTANT:
 - Be clinically accurate and use appropriate medical terminology
 - Highlight any values that are outside normal range
 - If data is insufficient for a section, still include the key with a note
+
+CRITICAL — ACCURACY RULES (you MUST follow these):
+- ONLY use ACTUAL patient lab results/values. Do NOT confuse reference ranges, thresholds, or educational text with real patient data.
+- Medical reports often contain lines like "If GFR < 15 → kidney failure" or "Normal range: 70-100 mg/dL" — these are INFORMATIONAL, NOT the patient's values. IGNORE them completely.
+- If a value appears next to comparison operators (<, >, ≤, ≥) or phrases like "less than", "greater than", "indicates", "suggests", "if value is" — it is a REFERENCE threshold, not patient data.
+- Only report diagnoses that the patient ACTUALLY HAS, not conditions mentioned as possibilities or educational context.
+- Only list medications the patient is ACTUALLY TAKING, not drugs mentioned in reference or interaction warnings.
+- When in doubt about whether something is a real finding vs. reference text, OMIT it rather than include false data.
 """
     return prompt
 
